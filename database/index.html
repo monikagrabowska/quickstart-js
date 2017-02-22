@@ -50,12 +50,15 @@
     // TODO: Replace with your project's customized code snippet
     var config = {
       apiKey: "<API_KEY>",
-      authDomain: "<PROJECT_ID>.firebaseapp.com",
-      databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
+      authDomain: "costestapp.firebaseapp.com",
+      databaseURL: "https://costestapp.firebaseio.com",
       storageBucket: "<BUCKET>.appspot.com",
       messagingSenderId: "<SENDER_ID>",
     };
     firebase.initializeApp(config);
+
+    // Get a reference to the database service - necessary to read or write data from the database
+    var database = firebase.database();
   </script>
 
 </head>
