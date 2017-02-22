@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Welcome to Firebase Hosting</title>
+    <style media="screen">
+      body {
+        font-family: Roboto, Arial, sans-serif;
+        background: #ECEFF1;
+        color: rgba(0,0,0,0.87);
+      }
+
+      a {
+        color: rgb(3,155,229);
+      }
+
+      #message {
+        max-width: 400px;
+        margin: 40px auto;
+        box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2),0 1px 1px 0 rgba(0,0,0,0.14),0 2px 1px -1px rgba(0,0,0,0.12);
+        border-radius: 2px;
+        background: white;
+        padding: 16px 24px;
+      }
+
+      #message h1 {
+        font-size: 22px;
+        font-weight: 500;
+        text-align: center;
+        margin: 0 0 16px;
+      }
+
+      #message p {
+        font-weight: 300;
+        line-height: 150%;
+      }
+
+      #message ul {
+        list-style: none;
+        margin: 16px 0 0;
+        padding: 0;
+        text-align: center;
+      }
+
+      #message li a {
+        display: inline-block;
+        padding: 8px;
+        text-transform: uppercase;
+        text-decoration: none;
+        font-weight: 500;
+        background: rgb(3,155,229);
+        color: white;
+        border: 1px solid rgb(3,155,229);
+        border-radius: 3px;
+        font-size: 14px;
+        box-shadow: 0 2px 5px 0 rgba(0,0,0,.26);
+      }
+    </style>
+  </head>
+
+  <script src="https://www.gstatic.com/firebasejs/3.6.9/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyCGtFnKVUUd-BjjifwgHfla2N4F2CW3vyc",
+      authDomain: "costestapp.firebaseapp.com",
+      databaseURL: "https://costestapp.firebaseio.com",
+      storageBucket: "costestapp.appspot.com",
+      messagingSenderId: "695668699350"
+    };
+    firebase.initializeApp(config);
+   
+    // Get a reference to the database service
+    var database = firebase.database(); 
+  </script> 
+
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script> 
+    var titles = [];
+    var pids = [];
+    var pubs = []; 
+    count = 0;
+
+    function make_base_auth(user, password) {
+      var tok = user + ':' + password;
+      var hash = btoa(tok);
+      return "Basic " + hash;
+    }
+
+    firebase.auth().signInWithEmailAndPassword("meg5ww@virginia.edu", "monikag1997").catch(function(error) {
+      var errorCode = error.code;
+      //console.log(errorCode);
+      var errorMessage = error.message;
+      //console.log(errorMessage)
+    });
+
+    $.ajax({
+      type:     "GET",
+      dataType: 'json',
+      crossDomain: 'true',
+      url:	"http://localhost:8000/v2/nodes/?format=json",
+
+      beforeSend: function(xhr) {
+        xhr.setRequestHeader( "Authorization", make_base_auth("monika.e.grabowska@gmail.com", "monikag1997"));
+      },
+      
+      success: function(data){ 
+        $.each(data, function(index, element) {  
+          $.each(element, function(i, e) {
+ 	    if (e == null) {
+	      return false;
+            }
+	    title = e['attributes']['title'];
+            firebase.database().ref('projects/'+title).set(
+              title
+            );
+            titles.push(title);
+
+            pid = e['id'];
+  	    pids.push(pid);
+           
+            pub = e['attributes']['public'];
+	    pubs.push(pub);
+
+            count++;
+          })
+	})
+
+	var i = 0;
+	function next() { 
+	  if (i < count) {
+
+ 	    $.ajax({
+              type:     "GET",
+              dataType: 'json',
+              crossDomain: 'true',
+              url:      "http://localhost:8000/v2/nodes/"+pids[i]+"/contributors/?format=json",
+
+              beforeSend: function(xhr) {
+                xhr.setRequestHeader( "Authorization", make_base_auth("monika.e.grabowska@gmail.com", "monikag1997"));
+              },
+
+              success: function(data) {
+                $.each(data, function(index, element) {
+                  if (element[0] == null) {
+                    return false;
+                  }
+ 		
+                  for (j = 0; j<element.length; j++) {
+		    title = titles[i];
+			
+		    cname = element[j]['embeds']['users']['data']['attributes']['full_name'] 
+	             
+		    if (j == 0) {
+		      firebase.database().ref('projects/'+title+'/').set(
+                        cname
+                      );
+		    }
+
+		    //console.log(cname);
+
+		    per = element[j]['attributes']['permission'];
+                    firebase.database().ref('projects/'+title+'/'+cname+'/').set({
+                      permissions: per
+                    });
+			
+	            pub = pubs[i];
+		    firebase.database().ref('projects/'+title+'/public/').set(
+          	      pub
+        	    );
+		  }
+		})
+		i++;
+	        next();
+              }
+            })
+          }
+        }
+        next();
+      }
+    })
+     
+    </script>
+
+  <body>
+    <div id="message">
+      <h1>Welcome</h1>
+      <p>This app lets the user interact with data from the OSF.</p>
+
+      <ul>
+      <p>
+
+    </script>
+      </p>
+        <!--<li><a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a></li>-->
+      </ul>
+    </div>
+ 
+  </body>
+</ihtml>
