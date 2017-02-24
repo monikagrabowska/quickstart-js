@@ -80,6 +80,9 @@
     var pids = [];
     var pubs = []; 
     count = 0;
+   
+    var email = window.prompt("Enter your email: ");
+    var pass = window.prompt("Enter your password: ");
 
     function make_base_auth(user, password) {
       var tok = user + ':' + password;
@@ -87,11 +90,12 @@
       return "Basic " + hash;
     }
 
-    firebase.auth().signInWithEmailAndPassword("meg5ww@virginia.edu", "monikag1997").catch(function(error) {
-      var errorCode = error.code;
-      //console.log(errorCode);
-      var errorMessage = error.message;
-      //console.log(errorMessage)
+    // authenticate to Firebase 
+    firebase.auth().signInWithEmailAndPassword(email, pass).catch(function(error) {
+      //var errorCode = error.code;
+      console.log(errorCode);
+      //var errorMessage = error.message;
+      console.log(errorMessage)
     });
 
     $.ajax({
@@ -100,8 +104,9 @@
       crossDomain: 'true',
       url:	"http://localhost:8000/v2/nodes/?format=json",
 
+      // authenticate to OSF API 
       beforeSend: function(xhr) {
-        xhr.setRequestHeader( "Authorization", make_base_auth("monika.e.grabowska@gmail.com", "monikag1997"));
+        xhr.setRequestHeader( "Authorization", make_base_auth(email, pass));
       },
       
       success: function(data){ 
@@ -137,7 +142,7 @@
               url:      "http://localhost:8000/v2/nodes/"+pids[i]+"/contributors/?format=json",
 
               beforeSend: function(xhr) {
-                xhr.setRequestHeader( "Authorization", make_base_auth("monika.e.grabowska@gmail.com", "monikag1997"));
+                xhr.setRequestHeader( "Authorization", make_base_auth(email, pass));
               },
 
               success: function(data) {
@@ -156,8 +161,6 @@
                         cname
                       );
 		    }
-
-		    //console.log(cname);
 
 		    per = element[j]['attributes']['permission'];
                     firebase.database().ref('projects/'+title+'/'+cname+'/').set({
